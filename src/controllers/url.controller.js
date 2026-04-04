@@ -1,5 +1,6 @@
 import URL from "../models/url.model.js";
 import generateShortCode from "../utils/generateShortCode.js";
+import redis from "../config/redis.js";
 
 export const createShortUrl = async (req, res) => {
   try {
@@ -25,10 +26,12 @@ export const createShortUrl = async (req, res) => {
       user: req.user?.id || null,
     });
 
+    // Cache the new URL
+    await redis.set(shortCode, originalUrl);
+
     res.status(201).json({
       shortUrl: `${process.env.BASE_URL}/${shortCode}`,
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -39,21 +42,27 @@ export const redirectUrl = async (req, res) => {
   try {
     const { shortCode } = req.params;
 
-    console.log("SHORT CODE:", shortCode); // 👈 ADD THIS
+    // Check cache first
+    const cachedUrl = await redis.get(shortCode);
+    if (cachedUrl) {
+      // Update clicks in the background
+      URL.findOneAndUpdate({ shortCode }, { $inc: { clicks: 1 } }).exec();
+      return res.redirect(cachedUrl);
+    }
 
     const url = await URL.findOne({ shortCode });
-
-    console.log("DB RESULT:", url); // 👈 ADD THIS
 
     if (!url) {
       return res.status(404).json({ message: "URL not found" });
     }
 
+    // Cache the URL for future requests
+    await redis.set(shortCode, url.originalUrl);
+
     url.clicks += 1;
     await url.save();
 
     return res.redirect(url.originalUrl);
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
