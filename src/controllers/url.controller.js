@@ -3,6 +3,7 @@ import generateShortCode from "../utils/generateShortCode.js";
 import redis from "../config/redis.js";
 
 export const createShortUrl = async (req, res) => {
+  console.log("createShortUrl function was called!");
   try {
     const { originalUrl } = req.body;
 
