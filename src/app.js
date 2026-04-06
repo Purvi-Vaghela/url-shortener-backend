@@ -8,16 +8,13 @@ import authRoutes from "./routes/auth.routes.js";
 import { redirectUrl } from "./controllers/url.controller.js";
 
 const app = express();
-
 // Middleware
 app.use(express.json());
 
-
-
- app.use(cors({
-  origin: process.env.FRONTEND_URL
-})); 
-// app.use(cors()); 
+//  app.use(cors({
+//   origin: process.env.FRONTEND_URL
+// })); 
+app.use(cors());  
 
 
 // DB

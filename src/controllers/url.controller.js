@@ -27,7 +27,9 @@ export const createShortUrl = async (req, res) => {
     });
 
     // Cache the new URL
-    await redis.set(shortCode, originalUrl);
+    await redis.set(shortCode, originalUrl).catch(err => {
+      console.error("Redis cache error:", err);
+    });
 
     const baseUrl = process.env.BASE_URL;
 
