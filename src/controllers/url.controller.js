@@ -92,6 +92,11 @@ export const deleteUrl = async (req, res) => {
       return res.status(404).json({ message: "URL not found" });
     }
 
+    //req.user.id -- current user - logged in user
+    // url.user.toString()  - url owner 
+    // this checks : “Does URL owner ID match logged-in user ID?”
+
+
     if (url.user && url.user.toString() !== req.user.id) {
       return res.status(401).json({ message: "Not authorized" });
     }
